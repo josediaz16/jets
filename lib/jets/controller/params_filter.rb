@@ -5,12 +5,21 @@ class Jets::Controller
     # Takes a list of keys and a hash and returns a new
     # hash with corresponding values marked as FILTERED
     def self.filter_values_from_hash(filtered_values:, hash_params:)
-      return hash_params if filtered_values.empty?
+      if filtered_values.empty? || !hash_params.is_a?(Hash)
+        return hash_params
+      end
 
-      hash_params.tap do |params|
-        [*filtered_values].each do |filtered_value|
-          params[filtered_value] = FILTERED if params[filtered_value].present?
+      hash_params.inject({}) do |hash, (key, value)|
+        case value
+        when Array
+          hash[key] = value.map { |item| filter_values_from_hash(filtered_values: filtered_values, hash_params: item) }
+        when Hash
+          hash[key] = filter_values_from_hash(filtered_values: filtered_values, hash_params: value)
+        else
+          hash[key] = filtered_values.include?(key) ? FILTERED : value
         end
+
+        hash
       end
     end
 

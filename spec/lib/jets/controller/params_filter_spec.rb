@@ -30,6 +30,60 @@ describe Jets::Controller::ParamsFilter do
       end
     end
 
+    context 'When filtered_parameters exist in nested hash' do
+      let(:filtered_values) { %i[password password_confirmation] }
+
+      let(:hash_params) { {user: super()} }
+
+      it 'Should return a new hash with filtered_parameters masked as [FILTERED]' do
+        expect(result).to eq(
+          user: {
+            password: '[FILTERED]',
+            password_confirmation: '[FILTERED]',
+            name: 'Joe',
+            bio: 'Ruby on jets!'
+          }
+        )
+      end
+    end
+
+    context 'When filtered_parameters exist in nested array' do
+      let(:filtered_values) { %i[password password_confirmation] }
+
+      let(:hash_params) do
+        {
+          users: [
+            super(),
+            {
+              password: 'abc123',
+              password_confirmation: 'abc123',
+              name: 'Jack',
+              bio: 'Lets go'
+            }
+          ]
+        }
+      end
+
+      it 'Should return a new hash with filtered_parameters masked as [FILTERED]' do
+        expect(result).to eq(
+          users: [
+            {
+              password: '[FILTERED]',
+              password_confirmation: '[FILTERED]',
+              name: 'Joe',
+              bio: 'Ruby on jets!'
+            },
+            {
+              password: '[FILTERED]',
+              password_confirmation: '[FILTERED]',
+              name: 'Jack',
+              bio: 'Lets go'
+            }
+          ]
+        )
+      end
+    end
+
     context 'When filtered_parameters is empty' do
       let(:filtered_values) { [] }
 
