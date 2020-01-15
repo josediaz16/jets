@@ -2,10 +2,7 @@ describe Jets::Controller::ParamsFilter do
   describe '.filter_values_from_hash' do
 
     let(:result) do
-      described_class.filter_values_from_hash(
-        filtered_values: filtered_values,
-        hash_params: hash_params
-      )
+      described_class.filter_values_from_hash(filtered_values, hash_params)
     end
 
     let(:hash_params) do
@@ -96,10 +93,7 @@ describe Jets::Controller::ParamsFilter do
   describe '.filter_values_from_json' do
 
     let(:result) do
-      described_class.filter_values_from_json(
-        filtered_values: filtered_values,
-        json_text: json_text
-      )
+      described_class.filter_values_from_json(filtered_values, json_text)
     end
 
     let(:json_text) do
@@ -131,7 +125,7 @@ describe Jets::Controller::ParamsFilter do
       let(:filtered_values) { %i[password password_confirmation] }
       let(:json_text) { "just a text" }
 
-      it 'Should return the original json text' do
+      it 'Should return a blank string' do
         expect(result).to eq("")
       end
     end
