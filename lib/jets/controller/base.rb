@@ -100,14 +100,26 @@ class Jets::Controller
     end
 
     def log_info_start
-      display_event = @event.dup
-      display_event['body'] = '[BASE64_ENCODED]' if @event['isBase64Encoded']
       # JSON.dump makes logging look pretty in CloudWatch logs because it keeps it on 1 line
       ip = request.ip
       Jets.logger.info "Started #{@event['httpMethod']} \"#{@event['path']}\" for #{ip} at #{Time.now}"
       Jets.logger.info "Processing #{self.class.name}##{@meth}"
       Jets.logger.info "  Event: #{json_dump(display_event)}"
-      Jets.logger.info "  Parameters: #{JSON.dump(params(raw: true).to_h)}"
+      Jets.logger.info "  Parameters: #{JSON.dump(params(raw: true, filtered: true).to_h)}"
+    end
+
+    def event_log
+      display_event = @event.dup
+
+      if @event['isBase64Encoded']
+        display_event['body'] = '[BASE64_ENCODED]'
+      else
+        display_event['body'] = params_filter.filter_values_from_json(display_event['body'])
+      end
+
+      display_event["queryStringParameters"] = params_filter.filter_values_from_hash(display_event['queryStringParameters'])
+      display_event["pathParameters"] = params_filter.filter_values_from_hash(display_event['pathParameters'])
+      json_dump(display_event)
     end
 
     # Handles binary data safely
@@ -130,6 +142,10 @@ class Jets::Controller
 
     def action_name
       @meth
+    end
+
+    def params_filter
+      @params_filter ||= ParamsFilter.new Jets.config.controllers.filtered_params
     end
 
     class_attribute :internal_controller

@@ -13,7 +13,7 @@ class Jets::Controller
     #   1. path parameters have highest precdence
     #   2. query string parameters
     #   3. body parameters
-    def params(raw: false, path_parameters: true, body_parameters: true)
+    def params(raw: false, filtered: false, path_parameters: true, body_parameters: true)
       path_params = event["pathParameters"] || {}
 
       params = {}
@@ -22,7 +22,7 @@ class Jets::Controller
       params = params.deep_merge(path_params) if path_parameters
 
       if raw
-        params
+        filtered ? ParamsFilter.filter_values_from_hash(Jets.config.filtered_params, params) : params
       else
         params = ActionDispatch::Request::Utils.normalize_encode_params(params) # for file uploads
         ActionController::Parameters.new(params)
